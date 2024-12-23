@@ -3,7 +3,9 @@ package com.kth.kthtechshop.controllers;
 import com.kth.kthtechshop.dto.ListResponse;
 import com.kth.kthtechshop.dto.auth.login.LoginDTO;
 import com.kth.kthtechshop.dto.auth.login.LoginResponseDTO;
+import com.kth.kthtechshop.dto.auth.register.RegisterDTO;
 import com.kth.kthtechshop.dto.auth.register.RegisterResponseDTO;
+import com.kth.kthtechshop.exception.BadRequestException;
 import com.kth.kthtechshop.models.Category;
 import com.kth.kthtechshop.services.AuthService;
 import com.kth.kthtechshop.services.CommonService;
@@ -29,7 +31,15 @@ public class AuthController {
     }
 
     @PostMapping("register")
-    public  CompletableFuture<RegisterResponseDTO>register(){
-        return
+    public CompletableFuture<RegisterResponseDTO> register(@Valid @RequestBody
+                                                           RegisterDTO userDto) {
+        return authService.register(userDto);
+    }
+
+    @GetMapping("verify")
+    public CompletableFuture<?> verifyUser(@RequestParam("code") String code) {
+        String cd = code.trim();
+        if (cd.length() != 6 || !"\\d{6}".matches(cd)) throw new BadRequestException();
+        return authService.verify(cd);
     }
 }

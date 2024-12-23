@@ -1,6 +1,8 @@
 package com.kth.kthtechshop.models;
 
+import com.kth.kthtechshop.dto.auth.register.RegisterDTO;
 import com.kth.kthtechshop.enums.Role;
+import com.kth.kthtechshop.utils.PasswordUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,4 +42,14 @@ public class User {
     @Column(name = "role")
     private Set<Role> roles;
 
+    public User(RegisterDTO userDto) {
+        this.gender = userDto.getGender();
+        this.firstName = userDto.getLast_name();
+        this.lastName = userDto.getLast_name();
+        this.userName = userDto.getLast_name();
+        this.email = userDto.getEmail();
+        this.password = PasswordUtil.hashPassword(userDto.getPassword());
+        this.phoneNumber = userDto.getPhone_number();
+        this.address = userDto.getAddress();
+    }
 }

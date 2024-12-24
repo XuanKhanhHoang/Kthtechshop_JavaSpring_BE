@@ -1,11 +1,13 @@
 package com.kth.kthtechshop.models;
 
 import com.kth.kthtechshop.dto.auth.register.RegisterDTO;
+import com.kth.kthtechshop.dto.user.UpdateUserDTO;
 import com.kth.kthtechshop.enums.Role;
 import com.kth.kthtechshop.utils.PasswordUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Builder
@@ -42,6 +44,8 @@ public class User {
     @Column(name = "role")
     private Set<Role> roles;
 
+    private String facebookId;
+
     public User(RegisterDTO userDto) {
         this.gender = userDto.getGender();
         this.firstName = userDto.getLast_name();
@@ -51,5 +55,7 @@ public class User {
         this.password = PasswordUtil.hashPassword(userDto.getPassword());
         this.phoneNumber = userDto.getPhone_number();
         this.address = userDto.getAddress();
+        this.roles = new HashSet<>();
+        this.roles.add(Role.NormalUser);
     }
 }

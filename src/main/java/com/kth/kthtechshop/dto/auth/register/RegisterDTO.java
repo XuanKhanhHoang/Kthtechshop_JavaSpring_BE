@@ -4,6 +4,7 @@ import com.kth.kthtechshop.decorators.address.ValidCustomerAddress;
 import com.kth.kthtechshop.decorators.email.ValidEmail;
 import com.kth.kthtechshop.decorators.phone_number.ValidPhoneNumber;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,7 @@ public class RegisterDTO {
     @NotEmpty(message = "Username is required")
     private String user_name;
     @NotEmpty(message = "Password is required")
+    @Size(min = 6, max = 12, message = "Address should be between 6 and 12 characters")
     private String password;
     @NotEmpty(message = "Email is required")
     @ValidEmail()

@@ -56,8 +56,9 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public AccessToken generateToken(int userId, int livingTime) {
+    public AccessToken generateToken(long userId, int livingTime, Set<Role> roles) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", roles);
         return createToken(claims, userId, livingTime);
     }
 
@@ -72,14 +73,14 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (long) livingTime * 60 * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + (long) livingTime * 60 * 1000))
                 .signWith(SECRET_KEY)
                 .compact();
         return new AccessToken(token, System.currentTimeMillis(), System.currentTimeMillis() + (long) livingTime * 60 * 60 * 1000);
     }
 
     private AccessToken createToken(Map<String, Object> claims, long userId) {
-        int defaultLivingTime = 2 * 60 * 60; // 2 giờ tính bằng giây
+        int defaultLivingTime = 2 * 60; //2h
         return createToken(claims, userId, defaultLivingTime);
     }
 

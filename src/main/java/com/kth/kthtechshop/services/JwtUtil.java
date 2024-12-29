@@ -1,6 +1,6 @@
 package com.kth.kthtechshop.services;
 
-import com.kth.kthtechshop.dto.auth.login.AccessToken;
+import com.kth.kthtechshop.dto.auth.login.JWTToken;
 import com.kth.kthtechshop.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,12 +22,16 @@ public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secretKeyString;
+    @Value("${jwt.refresh.secret}")
+    private String refreshTokenKey;
 
     private SecretKey SECRET_KEY;
+    private SecretKey REFRESH_KEY;
 
     @PostConstruct
     public void init() {
         SECRET_KEY = Keys.hmacShaKeyFor(secretKeyString.getBytes());
+        REFRESH_KEY = Keys.hmacShaKeyFor(refreshTokenKey.getBytes());
     }
 
     public Integer extractUserId(String token) {
@@ -56,32 +60,32 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public AccessToken generateToken(long userId, int livingTime, Set<Role> roles) {
+    public JWTToken generateToken(long userId, int livingTime, Set<Role> roles) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", roles);
-        return createToken(claims, userId, livingTime);
+        return createToken(claims, userId, livingTime, true);
     }
 
-    public AccessToken generateToken(long userId, Set<Role> roles) {
+    public JWTToken generateToken(long userId, Set<Role> roles) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", roles);
         return createToken(claims, userId);
     }
 
-    private AccessToken createToken(Map<String, Object> claims, long userId, int livingTime) {
+    private JWTToken createToken(Map<String, Object> claims, long userId, int livingTime, boolean isAccessToken) {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + (long) livingTime * 60 * 1000))
-                .signWith(SECRET_KEY)
+                .signWith(isAccessToken ? SECRET_KEY : REFRESH_KEY)
                 .compact();
-        return new AccessToken(token, System.currentTimeMillis(), System.currentTimeMillis() + (long) livingTime * 60 * 60 * 1000);
+        return new JWTToken(token, System.currentTimeMillis(), System.currentTimeMillis() + (long) livingTime * 60 * 60 * 1000);
     }
 
-    private AccessToken createToken(Map<String, Object> claims, long userId) {
+    private JWTToken createToken(Map<String, Object> claims, long userId) {
         int defaultLivingTime = 2 * 60; //2h
-        return createToken(claims, userId, defaultLivingTime);
+        return createToken(claims, userId, defaultLivingTime, true);
     }
 
     public long validateToken(String token) {
@@ -91,5 +95,17 @@ public class JwtUtil {
 
     public Set<Role> getRoles(String token) {
         return extractRoles(token);
+    }
+
+    //REFRESH
+    public JWTToken generateRefreshToken(long userId, Set<Role> roles) {
+        Map<String, Object> claims = new HashMap<>();
+        int livingTime = 3 * 24 * 60; //3days
+        claims.put("roles", roles);
+        return createToken(claims, userId, livingTime, false);
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        return true;
     }
 }

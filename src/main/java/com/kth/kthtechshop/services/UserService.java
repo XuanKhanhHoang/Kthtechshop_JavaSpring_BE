@@ -1,12 +1,17 @@
 package com.kth.kthtechshop.services;
 
+import com.kth.kthtechshop.dto.ListResponse;
+import com.kth.kthtechshop.dto.user.GetUserListDTO;
 import com.kth.kthtechshop.dto.user.GetUserResponseDTO;
 import com.kth.kthtechshop.dto.user.UpdateUserDTO;
 import com.kth.kthtechshop.exception.NotFoundException;
 import com.kth.kthtechshop.models.User;
 import com.kth.kthtechshop.repository.UserRepository;
 import com.kth.kthtechshop.utils.PasswordUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -73,5 +78,19 @@ public class UserService {
         var user = this.userRepository.findById(userId);
         if (user.isEmpty()) throw new NotFoundException();
         return new GetUserResponseDTO(user.get());
+    }
+
+    public ListResponse<?> getList(@Valid GetUserListDTO query) {
+        Pageable pageable = PageRequest.of(query.getPage(), query.getLimit());
+        var users = userRepository.findAll(pageable);
+        return new ListResponse<GetUserResponseDTO>(users.stream().map(GetUserResponseDTO::new).toList(), users.getTotalPages());
+    }
+
+    public void updateStatus(long userId, boolean status) {
+        var userCont = userRepository.findById(userId);
+        if (userCont.isEmpty()) throw new NotFoundException();
+        var user = userCont.get();
+        user.setIsValid(status);
+        userRepository.save(user);
     }
 }

@@ -1,7 +1,11 @@
 package com.kth.kthtechshop.utils;
 
+import com.kth.kthtechshop.enums.Role;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Collection;
 
 public class SecurityUtil {
 
@@ -14,6 +18,22 @@ public class SecurityUtil {
             }
         }
         return null;
+    }
+
+    public static boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Collection<? extends GrantedAuthority> roles = authentication.getAuthorities();
+            if (roles != null) {
+                for (GrantedAuthority role : roles) {
+                    if (role.getAuthority().equals(Role.Admin.toString())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        return false;
     }
 }
 

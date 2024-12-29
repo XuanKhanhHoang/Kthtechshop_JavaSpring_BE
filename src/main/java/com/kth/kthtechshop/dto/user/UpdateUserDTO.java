@@ -28,4 +28,16 @@ public class UpdateUserDTO {
     private String password;
     @NotEmpty(message = "Email is required")
     private String email;
+    private long id;
+    public UpdateUserDTO(String user_name, String email, String phone_number, String password, String address, Boolean gender, String first_name, String last_name) {
+        this.user_name = user_name;
+        this.email = email;
+        this.phone_number = phone_number;
+        this.password = password;
+        this.address = address;
+        this.gender = gender;
+        this.first_name = first_name;
+        this.last_name = last_name;
+    }
 }
+

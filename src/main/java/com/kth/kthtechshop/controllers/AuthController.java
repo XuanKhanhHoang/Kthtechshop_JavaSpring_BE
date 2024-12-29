@@ -8,8 +8,10 @@ import com.kth.kthtechshop.exception.BadRequestException;
 import com.kth.kthtechshop.exception.NotFoundException;
 import com.kth.kthtechshop.services.AuthService;
 import jakarta.validation.Valid;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -49,7 +51,9 @@ public class AuthController {
 
     @PostMapping("login_by_facebook")
     @Async
-    public LoginResponseDTO loginByFacebook(@RequestParam("access_token") String accessToken) {
+    public LoginResponseDTO loginByFacebook(@RequestBody() Map<String, String> body) {
+        String accessToken = body.get("access_token");
+        if (accessToken == null) throw new BadRequestException();
         RestTemplate restTemplate = new RestTemplate();
         String url = UriComponentsBuilder.fromUriString("https://graph.facebook.com/me").queryParam("fields", "id,name,email").queryParam("access_token", accessToken).toUriString();
         Map<String, Object> facebookUser = restTemplate.getForObject(url, Map.class);
@@ -59,5 +63,13 @@ public class AuthController {
         String email = (String) facebookUser.get("email");
         String facebookId = (String) facebookUser.get("id");
         return authService.loginByFacebook(email, facebookId);
+    }
+
+    @PostMapping("password_recovery")
+    @Async
+    public ResponseEntity<?> passwordRecovery(@RequestBody() Map<String, String> body) {
+        String email = body.get("email");
+        if (body.isEmpty() || email == null) throw new BadRequestException();
+        return authService.passwordRecovery(email);
     }
 }

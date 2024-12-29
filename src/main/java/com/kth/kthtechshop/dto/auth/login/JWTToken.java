@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class AccessToken {
+public class JWTToken {
     private String token;
     private long iat;
     private long exp;

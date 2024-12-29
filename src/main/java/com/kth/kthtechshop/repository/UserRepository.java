@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByUserName(String userName);
 
+    User findByEmail(String email);
+
     @Query("SELECT u FROM User u JOIN u.userFacebook uf WHERE u.email = :email AND uf.facebookId = :facebookId")
     Optional<User> findByEmailAndFacebookId(@Param("email") String email, @Param("facebookId") String facebookId);
 }

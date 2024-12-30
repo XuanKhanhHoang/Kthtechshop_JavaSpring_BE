@@ -7,6 +7,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.client.http.InputStreamContent;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +52,8 @@ public class GoogleDriveService {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) throw new RuntimeException();
         String extension = originalFilename.substring(originalFilename.lastIndexOf('.'));
+        if (!(extension.endsWith(".png") || extension.endsWith(".jpg") || extension.endsWith(".webp")))
+            throw new BadRequestException();
         fileMetadata.setName(originalFilename.contains(".") ? fileName : (fileName + extension));
         fileMetadata.setParents(Collections.singletonList(folderId));
         InputStream inputStream = file.getInputStream();

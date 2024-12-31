@@ -8,15 +8,25 @@ import com.kth.kthtechshop.enums.OrderStatus;
 import com.kth.kthtechshop.exception.BadRequestException;
 import com.kth.kthtechshop.exception.ForbiddenException;
 import com.kth.kthtechshop.exception.NotFoundException;
+import com.kth.kthtechshop.models.Order;
 import com.kth.kthtechshop.repository.OrderRepository;
+import com.kth.kthtechshop.repository.OrderSpecification;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class OrderService {
@@ -27,12 +37,39 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    public OrderDTO getOrder(Long orderId) {
-        return null;
+    public OrderDTO getOrder(Long orderId, boolean isAdmin, Long userId) {
+        var orderCont = orderRepository.findById(orderId);
+        if (orderCont.isEmpty()) throw new NotFoundException();
+        Order order = orderCont.get();
+        if (!Objects.equals(order.getUser().getId(), userId) && !isAdmin) throw new ForbiddenException();
+        return new OrderDTO(order);
     }
 
+    @Transactional
     public ListResponse<OrderDTO> getOrders(GetOrdersDTO params) {
-        return null;
+        List<String> validOrderColumns = Arrays.asList("createAt", "receivedAt");
+        if (!validOrderColumns.contains(params.getOrder_col())) {
+            throw new BadRequestException("Invalid order column");
+        }
+        Sort sort = Sort.by(Sort.Direction.fromString(params.getOrder_type()), params.getOrder_col());
+        Pageable pageable = PageRequest.of(params.getPage() != null ? params.getPage() - 1 : 0, params.getLimit() != null ? params.getLimit() : 6, sort);
+        OrderStatus status = null;
+        if (params.getStatusId() != null) {
+            for (var st : OrderStatus.values()) {
+                if (st.ordinal() == params.getStatusId()) {
+                    status = st;
+                    break;
+                }
+
+            }
+            if (status == null) throw new BadRequestException();
+        }
+        Specification<Order> specification = OrderSpecification.getSpecifications(params.getUser_id(), status);
+        Page<Order> ordersPage = orderRepository.findAll(specification, pageable);
+        List<OrderDTO> res = ordersPage.getContent().stream()
+                .map(OrderDTO::new)
+                .toList();
+        return new ListResponse<>(res, ordersPage.getTotalPages());
     }
 
     @Transactional

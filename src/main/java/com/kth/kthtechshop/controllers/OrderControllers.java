@@ -38,7 +38,9 @@ public class OrderControllers {
     @GetMapping("get_order")
     public OrderDTO getOrder(@RequestParam Long orderId) {
         if (orderId <= 0) throw new BadRequestException();
-        return orderService.getOrder(orderId);
+        boolean isAdmin = SecurityUtil.isAdmin();
+        Long userId = SecurityUtil.getUserId();
+        return orderService.getOrder(orderId, isAdmin, userId);
     }
 
     @PostMapping("create_order")

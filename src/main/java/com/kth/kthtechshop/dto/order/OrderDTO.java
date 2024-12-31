@@ -3,7 +3,7 @@ package com.kth.kthtechshop.dto.order;
 import com.kth.kthtechshop.dto.user.GetUserResponseDTO;
 import com.kth.kthtechshop.enums.OrderStatus;
 import com.kth.kthtechshop.enums.PaymentMethod;
-import com.kth.kthtechshop.models.OrderListProduct;
+import com.kth.kthtechshop.models.Order;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,17 +22,26 @@ public class OrderDTO {
     private PaymentMethod paymentMethod;
     private OrderStatus status;
     private GetUserResponseDTO user;
-    private List<OrderListProductItemDTO> orderProductList;
+    private List<ProductOptionDetail> orderProductList;
 
-    public OrderDTO(Long id, GetUserResponseDTO user, OrderStatus status, PaymentMethod paymentMethod, Integer delivery_fee, String delivery_address, LocalDateTime receivedAt, LocalDateTime createAt, List<OrderListProductItemDTO> orderProductList) {
-        this.id = id;
-        this.user = user;
-        this.status = status;
-        this.paymentMethod = paymentMethod;
-        this.delivery_fee = delivery_fee;
-        this.delivery_address = delivery_address;
-        this.receivedAt = receivedAt;
-        this.createAt = createAt;
-        this.orderProductList = orderProductList;
+    public OrderDTO(Order order) {
+        this.id = order.getId();
+        this.user = new GetUserResponseDTO(order.getUser());
+        this.status = order.getStatus();
+        this.paymentMethod = order.getPaymentMethod();
+        this.delivery_fee = order.getDelivery_fee();
+        this.delivery_address = order.getDelivery_address();
+        this.receivedAt = order.getReceivedAt();
+        this.createAt = order.getCreateAt();
+
+        this.orderProductList = order.getOrderProductList().stream().map(item -> {
+            var tmp = item.getProductOption();
+            String productName = tmp.getProducts().getName();
+            String productOptionName = tmp.getName();
+            int quantity = item.getQuantity();
+            Long priceSell = item.getSellingPrice();
+            int discount = item.getDiscount();
+            return new ProductOptionDetail(productName, productOptionName, quantity, priceSell, discount);
+        }).toList();
     }
 }

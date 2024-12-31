@@ -1,6 +1,5 @@
 ggapi_secret.json
 .env
-docker-compose.yaml
 HELP.md
 .gradle
 build/

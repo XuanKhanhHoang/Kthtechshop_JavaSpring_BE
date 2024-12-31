@@ -1,0 +1,8 @@
+services:
+  db-ecommerce:
+    image: mysql:8.2.0
+    ports:
+      - ${DB_PORT}:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}

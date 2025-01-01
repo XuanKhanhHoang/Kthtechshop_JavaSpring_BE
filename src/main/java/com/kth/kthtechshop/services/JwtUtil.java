@@ -105,6 +105,28 @@ public class JwtUtil {
         return createToken(claims, userId, livingTime, false);
     }
 
+    public Integer extractUserIdRf(String token) {
+        final Claims claims = extractAllClaimsFr(token);
+        return Integer.parseInt(claims.getSubject());
+    }
+
+    public Date extractExpirationRf(String token) {
+        final Claims claims = extractAllClaimsFr(token);
+        return claims.getExpiration();
+    }
+
+    public Set<Role> extractRolesRf(String token) {
+        return (Set<Role>) extractAllClaimsFr(token).get("roles");
+    }
+
+    private Claims extractAllClaimsFr(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(REFRESH_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     public boolean isRefreshTokenValid(String token) {
         return true;
     }

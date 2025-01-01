@@ -49,6 +49,13 @@ public class AuthController {
         return new RedirectView("http://localhost:3000/auth/active_success");
     }
 
+    @PostMapping("refresh_token")
+    public LoginResponseDTO refresh_token(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refresh_token");
+        if (refreshToken == null) throw new BadRequestException();
+        return authService.refreshToken(refreshToken);
+    }
+
     @PostMapping("login_by_facebook")
     @Async
     public LoginResponseDTO loginByFacebook(@RequestBody() Map<String, String> body) {

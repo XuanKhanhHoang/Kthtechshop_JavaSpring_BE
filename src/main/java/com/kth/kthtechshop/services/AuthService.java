@@ -86,4 +86,14 @@ public class AuthService {
         userRepository.save(user);
         return ResponseEntity.ok("password is updated");
     }
+
+    public LoginResponseDTO refreshToken(String refreshToken) {
+        if (!jwtUtil.isRefreshTokenValid(refreshToken)) throw new UnauthorizedException();
+        long user_id = jwtUtil.extractUserIdRf(refreshToken);
+        var role = jwtUtil.extractRolesRf(refreshToken);
+        Optional<User> userC = userRepository.findById(user_id);
+        if (userC.isEmpty()) throw new UnauthorizedException();
+        var user = userC.get();
+        return new LoginResponseDTO(jwtUtil.generateToken(user_id, role), jwtUtil.generateRefreshToken(user_id, role), new UserGeneralDetailsDTO(user.getId(), user.getFirstName(), user.getAvatar(), user.getRoles()));
+    }
 }

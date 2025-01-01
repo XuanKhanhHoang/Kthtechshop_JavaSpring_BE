@@ -4,9 +4,15 @@ import com.kth.kthtechshop.decorators.address.ValidCustomerAddress;
 import com.kth.kthtechshop.decorators.phone_number.ValidPhoneNumber;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@AllArgsConstructor
+@Getter
+@Setter
 public class CreateOrderDTO {
     @NotNull
     @Size(min = 1, message = "Data list cannot be empty.")

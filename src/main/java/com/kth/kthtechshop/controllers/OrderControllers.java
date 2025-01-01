@@ -1,14 +1,13 @@
 package com.kth.kthtechshop.controllers;
 
 import com.kth.kthtechshop.dto.ListResponse;
-import com.kth.kthtechshop.dto.order.CreateOrderDTO;
-import com.kth.kthtechshop.dto.order.GetOrdersDTO;
-import com.kth.kthtechshop.dto.order.OrderDTO;
-import com.kth.kthtechshop.dto.order.UpdateOrderStatusDTO;
+import com.kth.kthtechshop.dto.VNPayReturnResponseDTO;
+import com.kth.kthtechshop.dto.order.*;
 import com.kth.kthtechshop.enums.OrderStatus;
 import com.kth.kthtechshop.exception.BadRequestException;
 import com.kth.kthtechshop.services.OrderService;
 import com.kth.kthtechshop.utils.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,9 +43,24 @@ public class OrderControllers {
     }
 
     @PostMapping("create_order")
-    public ResponseEntity<?> createOrder(@Valid @RequestBody CreateOrderDTO newOrder) {
+    public CreateOrderResponseDTO createOrder(@Valid @RequestBody CreateOrderDTO newOrder, HttpServletRequest request) {
         Long userId = SecurityUtil.getUserId();
-        return orderService.createOrder(userId, newOrder);
+        String ipAddr = SecurityUtil.getClientIp(request);
+        return orderService.createOrder(ipAddr, userId, newOrder);
+    }
+
+    @GetMapping("get_payment_url")
+    public String getPaymentUrl(@RequestParam Map<String, String> query, HttpServletRequest request) {
+        Long userId = SecurityUtil.getUserId();
+        String ipAddr = SecurityUtil.getClientIp(request);
+        String oid = query.get("order_id");
+        if (oid == null) throw new BadRequestException();
+        try {
+            Long orderId = Long.parseLong(oid);
+            return orderService.getPaymentUrl(userId, ipAddr, orderId);
+        } catch (NumberFormatException e) {
+            throw new BadRequestException();
+        }
     }
 
     @GetMapping("admin_get_full_orders")
@@ -81,5 +95,10 @@ public class OrderControllers {
         }
         if (status == null) throw new BadRequestException();
         return orderService.updateOrderStatus(status, order.getOrder_id());
+    }
+
+    @GetMapping("vnpreturn")
+    public VNPayReturnResponseDTO handleVnPayReturnResponse(@RequestParam Map<String, String> vnpParams) {
+        return orderService.handleVnPayReturnResponse(vnpParams);
     }
 }

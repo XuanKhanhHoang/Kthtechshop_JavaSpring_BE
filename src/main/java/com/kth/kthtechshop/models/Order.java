@@ -1,16 +1,13 @@
 package com.kth.kthtechshop.models;
 
 
-import com.google.api.client.util.DateTime;
 import com.kth.kthtechshop.enums.OrderStatus;
 import com.kth.kthtechshop.enums.PaymentMethod;
-import com.kth.kthtechshop.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -29,9 +26,11 @@ public class Order {
     private Integer delivery_fee;
 
     @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+    @Builder.Default
+    private PaymentMethod paymentMethod = PaymentMethod.Cash;
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    @Builder.Default
+    private OrderStatus status = OrderStatus.WaitingForDelivering;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -39,4 +38,16 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderListProduct> orderProductList;
 
+    public Order(Integer delivery_fee, String delivery_address, PaymentMethod paymentMethod, User user) {
+        this.delivery_fee = delivery_fee;
+        this.delivery_address = delivery_address;
+        this.paymentMethod = paymentMethod;
+        this.user = user;
+    }
+
+    public Order(Integer delivery_fee, String delivery_address, User user) {
+        this.delivery_fee = delivery_fee;
+        this.delivery_address = delivery_address;
+        this.user = user;
+    }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/order/private")
+@RequestMapping("/api/v1/order")
 public class OrderControllers {
 
     private final OrderService orderService;
@@ -27,14 +27,14 @@ public class OrderControllers {
         this.orderService = orderService;
     }
 
-    @GetMapping("get_orders")
+    @GetMapping("/private/get_orders")
     public ListResponse<OrderDTO> getOrders(@Valid @RequestParam GetOrdersDTO params) {
         Long userId = SecurityUtil.getUserId();
         params.setUser_id(userId);
         return orderService.getOrders(params);
     }
 
-    @GetMapping("get_order")
+    @GetMapping("/private/get_order")
     public OrderDTO getOrder(@RequestParam Long orderId) {
         if (orderId <= 0) throw new BadRequestException();
         boolean isAdmin = SecurityUtil.isAdmin();
@@ -42,14 +42,14 @@ public class OrderControllers {
         return orderService.getOrder(orderId, isAdmin, userId);
     }
 
-    @PostMapping("create_order")
+    @PostMapping("/private/create_order")
     public CreateOrderResponseDTO createOrder(@Valid @RequestBody CreateOrderDTO newOrder, HttpServletRequest request) {
         Long userId = SecurityUtil.getUserId();
         String ipAddr = SecurityUtil.getClientIp(request);
         return orderService.createOrder(ipAddr, userId, newOrder);
     }
 
-    @GetMapping("get_payment_url")
+    @GetMapping("/private/get_payment_url")
     public String getPaymentUrl(@RequestParam Map<String, String> query, HttpServletRequest request) {
         Long userId = SecurityUtil.getUserId();
         String ipAddr = SecurityUtil.getClientIp(request);
@@ -63,13 +63,13 @@ public class OrderControllers {
         }
     }
 
-    @GetMapping("admin_get_full_orders")
+    @GetMapping("/private/admin_get_full_orders")
     @PreAuthorize("hasRole('ROLE_Admin')")
     public ListResponse<OrderDTO> getFullOrderAdmin(@Valid @RequestParam GetOrdersDTO params) {
         return orderService.getOrders(params);
     }
 
-    @PostMapping("cancel_order")
+    @PostMapping("/private/cancel_order")
     public ResponseEntity<?> cancelOrder(@RequestBody Map<String, String> body) {
         String orderIdStr = body.get("order_id");
         long orderId;
@@ -83,7 +83,7 @@ public class OrderControllers {
         return orderService.cancelOrder(isAdmin, userId, orderId);
     }
 
-    @PostMapping("change_order_status")
+    @PostMapping("/private/change_order_status")
     @PreAuthorize("hasRole('ROLE_Admin')")
     public ResponseEntity<?> changeOrderStatus(@RequestBody @Valid UpdateOrderStatusDTO order) {
         OrderStatus status = null;
@@ -95,6 +95,21 @@ public class OrderControllers {
         }
         if (status == null) throw new BadRequestException();
         return orderService.updateOrderStatus(status, order.getOrder_id());
+    }
+
+
+    @PostMapping("/private/accept_deliver_order")
+    @PreAuthorize("hasRole('ROLE_Admin')")
+    public ResponseEntity<?> acceptDeliverOrder(@RequestBody @Valid Map<String, String> body) {
+        String orderIdStr = body.get("order_id");
+        if (orderIdStr == null) throw new BadRequestException();
+        try {
+            Long orderId = Long.parseLong(orderIdStr);
+            return orderService.acceptDeliverOrder(orderId);
+        } catch (NumberFormatException e) {
+            throw new BadRequestException();
+        }
+
     }
 
     @GetMapping("vnpreturn")

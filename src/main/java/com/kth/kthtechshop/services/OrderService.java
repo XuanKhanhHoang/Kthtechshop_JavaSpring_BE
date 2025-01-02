@@ -166,4 +166,19 @@ public class OrderService {
         }
         return res;
     }
+
+    @Transactional
+    public ResponseEntity<?> acceptDeliverOrder(Long orderId) {
+        var orderCont = this.orderRepository.findById(orderId);
+        if (orderCont.isEmpty()) throw new NotFoundException();
+        var order = orderCont.get();
+        order.setStatus(OrderStatus.Delivering);
+        orderRepository.save(order);
+        order.getOrderProductList().forEach(item -> {
+            var op = item.getProductOption();
+            op.setAmount(op.getAmount() - 1);
+            productOptionRepository.save(op);
+        });
+        return ResponseEntity.status(200).body("updated");
+    }
 }
